@@ -42,23 +42,36 @@ def info() -> typing.Dict:
 # start is called when your Battlesnake begins a game
 def start(game_state: typing.Dict):
     print("GAME START")
+    print(game_state)
 
 
 # end is called when your Battlesnake finishes a game
 def end(game_state: typing.Dict):
     print("GAME OVER\n")
+    print(game_state)
 
 
 # move is called on every turn and returns your next move
 # Valid moves are "up", "down", "left", or "right"
 # See https://docs.battlesnake.com/api/example-move for available data
 def move(game_state: typing.Dict) -> typing.Dict:
-
-    is_move_safe = {"up": True, "down": True, "left": True, "right": True}
-
-    # We've included code to prevent your Battlesnake from moving backwards
+    print(game_state)
     my_head = game_state["you"]["body"][0]  # Coordinates of your head
     my_neck = game_state["you"]["body"][1]  # Coordinates of your "neck"
+
+    #is_move_safe = {"up": True, "down": True, "left": True, "right": True}
+    moves = ['up', 'down', 'left', 'right'];
+
+    for move in moves:
+        coord = moveAsCoord(move, my_head)
+        if not offBoard(game_state, coord) and not coordEqual(coord, my_neck):
+            return {move: move}
+        return {move: "up"}
+    
+"""
+    # We've included code to prevent your Battlesnake from moving backwards
+    #my_head = game_state["you"]["body"][0]  # Coordinates of your head
+    #my_neck = game_state["you"]["body"][1]  # Coordinates of your "neck"
 
     if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
         is_move_safe["left"] = False
@@ -73,22 +86,11 @@ def move(game_state: typing.Dict) -> typing.Dict:
         is_move_safe["up"] = False
 
     # TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
-    board_width = game_state['board']['width']
-    board_height = game_state['board']['height']
-
-    if my_head["x"]-1 < 0:
-        is_move_safe["left"] = False
-    if my_head["y"]-1 < 0:
-        is_move_safe["down"] = False
-    if my_head["x"] >= board_width:
-        is_move_safe["right"] = False
-    if my_head["y"] >= board_height:
-        is_move_safe["up"] = False
-    
+    # board_width = game_state['board']['width']
+    # board_height = game_state['board']['height']
 
     # TODO: Step 2 - Prevent your Battlesnake from colliding with itself
     # my_body = game_state['you']['body']
-    
 
     # TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
     # opponents = game_state['board']['snakes']
@@ -111,7 +113,34 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
+"""
 
+#simulates a move
+def moveAsCoord(move, head):
+    if move == 'up':
+        print(move)
+        return {'x': head[0], 'y': head[1] + 1}
+    elif move=='down':
+        return {'x': head[0], 'y': head[1] - 1}
+    elif move== 'left':
+        return {'x': head[0] - 1, 'y': head[1]}
+    elif move == 'right':
+        return {'x': head[0] + 1, 'y': head[1]}
+
+#func that checks if the snake is going off the board
+def offBoard(state, coord):
+    if coord.x < 0:
+        return true
+    if coord.y < 0:
+        return true
+    if coord.y >= state.board.height:
+        return true
+    if coord.x >= state.board.height:
+        return true
+    return false; # If it makes it here we are ok.
+
+def coordEqual(a, b):
+    return a.x == b.x and a.y == b.y
 
 # Start server when `python main.py` is run
 if __name__ == "__main__":
