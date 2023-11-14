@@ -1,11 +1,12 @@
 import bottle
 import os
+import random
+from random import randint
 from math import *
 
 ENEMY = 1
 WALL = 2
 SAFE = 5
-
 #------------------------------------------------------------------------------------------------------------
 game_id = ''
 board_width = 0
@@ -25,9 +26,11 @@ Round = 1
 def static():
     return "the server is running"
 
+
 @bottle.route('/static/<path:path>')
-def static_file(path):
+def static(path):
     return bottle.static_file(path, root='static/')
+
 
 @bottle.post('/start')
 def start():
@@ -53,6 +56,7 @@ def start():
         "head_type": "tongue",
         "tail_type": "pixel"
     }
+                            
 
 #------------------------------------------------------------------------------------------------------------
 @bottle.post('/move')
@@ -298,10 +302,10 @@ def count_amount_walls(segy, segx):
 def next_new_body_list(new_head, body_list, Round, self_head):
     global secure_level
     new_body_list = []
-    for index in range(len(body_list) - 1):
+    for index in range(len(body_list)-1):
         if index == 0:
             new_body_list.append(new_head)
-            segy = new_head[0]  # set the head location to the new location
+            segy = new_head[0]  #set the head location to the new location
             segx = new_head[1]
             if self_head != 0:
                 if secure_level[segy][segx] > Round:
@@ -318,10 +322,11 @@ def next_new_body_list(new_head, body_list, Round, self_head):
                     elif count_walls == 1:
                         if Round > 3:
                             secure_level[segy][segx] = 3
+                #print "secure_level[segy][segx]:", segy, segx, secure_level[segy][segx]
         else:
-            new_body_list.append(body_list[index - 1])
-            segy = body_list[index - 1][0]
-            segx = body_list[index - 1][1]
+            new_body_list.append(body_list[index-1])
+            segy = body_list[index-1][0]
+            segx = body_list[index-1][1]
             if secure_level[segy][segx] > Round:
                 secure_level[segy][segx] = Round
                 count_walls = count_amount_walls(segy, segx)
@@ -335,16 +340,17 @@ def next_new_body_list(new_head, body_list, Round, self_head):
                         secure_level[segy][segx] = 2
                 elif count_walls == 1:
                     if Round > 3:
-                        secure_level[segy][segx] = 3
+                        secure_level[segy][segx] = 3                
     new_body_list.append(body_list[-1])
     return new_body_list
+
 
 #do the next move forcast
 def next_move_forcast(forcast_list, Round):
     global secure_level
     new_my_body_list = []
     new_enemy_body_list = []
-    # self_head= 0 means self head
+    #self_head= 0 means self head 
     self_head = 0
     for each_snake in forcast_list:
         snake_head = []
@@ -354,26 +360,29 @@ def next_move_forcast(forcast_list, Round):
         for each_location in snake_head_next_location:
             new_each_snake_list = next_new_body_list(each_location, each_snake, Round, self_head)
             new_enemy_body_list.append(new_each_snake_list)
-        self_head = self_head + 1
+        self_head = self_head+1
     if Round != 5:
         Round = Round + 1
         secure_level = next_move_forcast(new_enemy_body_list, Round)
+#    print "secure:"
+#    for i in secure_level:
+#        print i
     return secure_level
 
 #When snakes move 1 step, their tail positons will be open again, (unless get a food)
 def get_open_coordinates(my_food_list, my_body_list, enemy_body_list):
-    open_coor = []
+    open_coor =[]
     if my_body_list[-2] != my_body_list[-3]:
         my_next_locations = next_move_location(my_body_list[0])
         common = 0
         for i in my_next_locations:
-            if i in my_food_list:
+            if i in my_food_list: 
                 common += 1
         if common == 0:
             open_coor.append(my_body_list[-2])
 
     for enemy_snake in enemy_body_list:
-        if enemy_snake[-2] != enemy_snake[-3]:  # last two elements not the same
+        if enemy_snake[-2] != enemy_snake[-3]: #last two elements not the same
             enemy_next_locations = next_move_location(enemy_snake[0])
             common = 0
             for i in enemy_next_locations:
@@ -384,13 +393,16 @@ def get_open_coordinates(my_food_list, my_body_list, enemy_body_list):
     return open_coor
 
 def get_distance(x1, y1, x2, y2):
-    distance = ((x1 - x2) ** 2) + ((y1 - y2) ** 2)
+    distance = ((x1-x2)**2)+((y1-y2)**2)
     return distance
 
+
+#------------------------------------------------------------------------------------------------------------
 @bottle.post('/end')
 def end():
     data = bottle.request.json
     return {'taunt': 'uh'}
+
 
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
@@ -400,5 +412,4 @@ if __name__ == '__main__':
         application,
         host=os.getenv('IP', '0.0.0.0'),
         port=os.getenv('PORT', '8080'),
-        debug=True
-    )
+        debug = True)
