@@ -2,16 +2,23 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from game import SnakeGameAI, Direction
-from model import Linear_QNet, QTrainer
+from deep_q_learning.model import Linear_QNet, QTrainer
+from enum import Enum
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
+class Direction(Enum):
+    DOWN = 1
+    LEFT = 2
+    UP = 3
+    RIGHT = 4
+
 class Agent:
     state_old = None
     final_move = None
+    current_direction = None
 
     def __init__(self):
         self.n_games = 0
@@ -34,18 +41,21 @@ class Agent:
         dir_d = False
         
         # We probably need some kind of vector as basis figure out which locations in the field which are unreachable
-        
         if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
             dir_l = True
+            self.current_direction = Direction.RIGHT
 
         elif my_neck["x"] > my_head["x"]:  # Neck is right of head, don't move right
             dir_r = True
+            self.current_direction = Direction.LEFT
 
         elif my_neck["y"] < my_head["y"]:  # Neck is below head, don't move down
             dir_u = True
+            self.current_direction = Direction.UP
 
         elif my_neck["y"] > my_head["y"]:  # Neck is above head, don't move up
             dir_d = True
+            self.current_direction = Direction.DOWN
 
         state = [
             #The three dangers are currently placeholders to avoid get to work first
@@ -120,40 +130,46 @@ class Agent:
 
         # get move
         self.final_move = self.get_action(self.state_old)
+        self.current_direction = Direction.UP
     
-    def get_action(self, game):
+    def get_next_move(self, game, reward, done, score):
         # perform move and get new state
-        reward, done, score = game.play_step(self.final_move)
         state_new = self.get_state(game)
-
         # train short memory
         self.train_short_memory(self.state_old, self.final_move, reward, state_new, done)
 
         # remember
         self.remember(self.state_old, self.final_move, reward, state_new, done)
-
-        if done:
-            # train long memory, plot result
-            game.reset()
-            self.n_games += 1
-            self.train_long_memory()
-
-            if score > record:
-                record = score
-                self.model.save()
                 
-            # get old state
-        self.state_old = self.get_state(game)
+        # get old state
+        self.state_old = state_new
 
         # get move
         self.final_move = self.get_action(self.state_old)
-        return self.final_move
+        return self.__direction_in_string(self.final_move)
     
     def done(self):
         self.n_games += 1
         self.train_long_memory()
         self.model.save()
     
-    def train(self, game):
-        return 0
+    def __direction_in_string(self, direction_state):
+        print(direction_state)
+        direction = 0
+        if direction_state == [0, 1, 0]: #left
+            direction - 1
+        elif direction_state == [0, 0, 1]: #right
+            direction + 1
+        
+        new_direction = (self.current_direction.value + direction) % 4
+        direction = (self.get_direction_from_value(new_direction))
+        self.current_direction = direction
+        return direction.name.lower()
+            
+    def get_direction_from_value(self, value):
+        for direction in Direction:
+            if direction.value == value:
+                return direction
+        
+        
         
