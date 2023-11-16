@@ -156,13 +156,15 @@ class Agent:
     def __direction_in_string(self, direction_state):
         print(direction_state)
         direction = 0
-        if direction_state == [0, 1, 0]: #left
-            direction - 1
+        if direction_state == [1, 0, 0]: #left
+            direction =- 1
         elif direction_state == [0, 0, 1]: #right
-            direction + 1
+            direction =+ 1
         
         new_direction = (self.current_direction.value + direction) % 4
+        print(new_direction)
         direction = (self.get_direction_from_value(new_direction))
+        print(direction)
         self.current_direction = direction
         return direction.name.lower()
             
