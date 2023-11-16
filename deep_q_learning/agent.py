@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from game import SnakeGameAI, Direction, Point
+from game import SnakeGameAI, Direction
 from model import Linear_QNet, QTrainer
 
 MAX_MEMORY = 100_000
@@ -10,6 +10,8 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class Agent:
+    state_old = None
+    final_move = None
 
     def __init__(self):
         self.n_games = 0
@@ -20,36 +22,50 @@ class Agent:
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
-    def get_state(self, game):
-        head = game.snake[0]
-        point_l = Point(head.x - 20, head.y)
-        point_r = Point(head.x + 20, head.y)
-        point_u = Point(head.x, head.y - 20)
-        point_d = Point(head.x, head.y + 20)
+    def get_state(self, game):       
+        # We've included code to prevent your Battlesnake from moving backwards
+        my_head = game["you"]["body"][0]  # Coordinates of your head
+        my_neck = game["you"]["body"][1]  # Coordinates of your "neck"
+        food = game["board"]["food"][0]
         
-        dir_l = game.direction == Direction.LEFT
-        dir_r = game.direction == Direction.RIGHT
-        dir_u = game.direction == Direction.UP
-        dir_d = game.direction == Direction.DOWN
+        dir_l = False
+        dir_r = False
+        dir_u = False
+        dir_d = False
+        
+        # We probably need some kind of vector as basis figure out which locations in the field which are unreachable
+        
+        if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
+            dir_l = True
+
+        elif my_neck["x"] > my_head["x"]:  # Neck is right of head, don't move right
+            dir_r = True
+
+        elif my_neck["y"] < my_head["y"]:  # Neck is below head, don't move down
+            dir_u = True
+
+        elif my_neck["y"] > my_head["y"]:  # Neck is above head, don't move up
+            dir_d = True
 
         state = [
+            #The three dangers are currently placeholders to avoid get to work first
             # Danger straight
-            (dir_r and game.is_collision(point_r)) or 
-            (dir_l and game.is_collision(point_l)) or 
-            (dir_u and game.is_collision(point_u)) or 
-            (dir_d and game.is_collision(point_d)),
+            (dir_r and my_neck["x"] < my_head["x"]) or 
+            (dir_l and my_neck["x"] > my_head["x"]) or 
+            (dir_u and my_neck["y"] < my_head["y"]) or 
+            (dir_d and my_neck["y"] > my_head["y"]),
 
             # Danger right
-            (dir_u and game.is_collision(point_r)) or 
-            (dir_d and game.is_collision(point_l)) or 
-            (dir_l and game.is_collision(point_u)) or 
-            (dir_r and game.is_collision(point_d)),
+            (dir_r and my_neck["x"] < my_head["x"]) or 
+            (dir_l and my_neck["x"] > my_head["x"]) or 
+            (dir_u and my_neck["y"] < my_head["y"]) or 
+            (dir_d and my_neck["y"] > my_head["y"]),
 
             # Danger left
-            (dir_d and game.is_collision(point_r)) or 
-            (dir_u and game.is_collision(point_l)) or 
-            (dir_r and game.is_collision(point_u)) or 
-            (dir_l and game.is_collision(point_d)),
+            (dir_r and my_neck["x"] < my_head["x"]) or 
+            (dir_l and my_neck["x"] > my_head["x"]) or 
+            (dir_u and my_neck["y"] < my_head["y"]) or 
+            (dir_d and my_neck["y"] > my_head["y"]),
             
             # Move direction
             dir_l,
@@ -58,10 +74,10 @@ class Agent:
             dir_d,
             
             # Food location 
-            game.food.x < game.head.x,  # food left
-            game.food.x > game.head.x,  # food right
-            game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
+            food['x'] < my_head['x'],  # food left
+            food['x'] > my_head['x'],  # food right
+            food['y'] < my_head['y'],  # food up
+            food['y'] > my_head['y']  # food down
             ]
 
         return np.array(state, dtype=int)
@@ -97,49 +113,47 @@ class Agent:
             final_move[move] = 1
 
         return final_move
-
-
-def train():
-    plot_scores = []
-    plot_mean_scores = []
-    total_score = 0
-    record = 0
-    agent = Agent()
-    game = SnakeGameAI()
-    while True:
+    
+    def start_position(self, game):
         # get old state
-        state_old = agent.get_state(game)
+        self.state_old = self.get_state(game)
 
         # get move
-        final_move = agent.get_action(state_old)
-
+        self.final_move = self.get_action(self.state_old)
+    
+    def get_action(self, game):
         # perform move and get new state
-        reward, done, score = game.play_step(final_move)
-        state_new = agent.get_state(game)
+        reward, done, score = game.play_step(self.final_move)
+        state_new = self.get_state(game)
 
         # train short memory
-        agent.train_short_memory(state_old, final_move, reward, state_new, done)
+        self.train_short_memory(self.state_old, self.final_move, reward, state_new, done)
 
         # remember
-        agent.remember(state_old, final_move, reward, state_new, done)
+        self.remember(self.state_old, self.final_move, reward, state_new, done)
 
         if done:
             # train long memory, plot result
             game.reset()
-            agent.n_games += 1
-            agent.train_long_memory()
+            self.n_games += 1
+            self.train_long_memory()
 
             if score > record:
                 record = score
-                agent.model.save()
+                self.model.save()
+                
+            # get old state
+        self.state_old = self.get_state(game)
 
-            print('Game', agent.n_games, 'Score', score, 'Record:', record)
-
-            plot_scores.append(score)
-            total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
-
-
-if __name__ == '__main__':
-    train()
+        # get move
+        self.final_move = self.get_action(self.state_old)
+        return self.final_move
+    
+    def done(self):
+        self.n_games += 1
+        self.train_long_memory()
+        self.model.save()
+    
+    def train(self, game):
+        return 0
+        
