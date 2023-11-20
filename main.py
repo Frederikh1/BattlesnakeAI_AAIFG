@@ -22,7 +22,10 @@
 
 import random
 import typing
+from deep_q_learning.game import SnakeGameAI
 
+
+game = SnakeGameAI()
 
 # info is called when you create your Battlesnake on play.battlesnake.com
 # and controls your Battlesnake's appearance
@@ -42,17 +45,22 @@ def info() -> typing.Dict:
 # start is called when your Battlesnake begins a game
 def start(game_state: typing.Dict):
     print("GAME START")
+    game.reset(game_state)
 
 
 # end is called when your Battlesnake finishes a game
 def end(game_state: typing.Dict):
     print("GAME OVER\n")
+    game.end()
 
 
 # move is called on every turn and returns your next move
 # Valid moves are "up", "down", "left", or "right"
 # See https://docs.battlesnake.com/api/example-move for available data
 def move(game_state: typing.Dict) -> typing.Dict:
+    next_move = game.play_step(game_state)
+    print(f"MOVE {game_state['turn']}: {next_move}")
+    return {"move": next_move}
 
     is_move_safe = {"up": True, "down": True, "left": True, "right": True}
 
