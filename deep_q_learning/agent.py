@@ -108,7 +108,7 @@ class Agent:
 
     def train_short_memory(self, state, action, reward, next_state, done):
         self.trainer.train_step(state, action, reward, next_state, done)
-
+    
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
         self.epsilon = 80 - self.n_games
@@ -135,6 +135,7 @@ class Agent:
     def get_next_move(self, game, reward, done, score):
         # perform move and get new state
         state_new = self.get_state(game)
+
         # train short memory
         self.train_short_memory(self.state_old, self.final_move, reward, state_new, done)
 
@@ -172,6 +173,27 @@ class Agent:
         for direction in Direction:
             if direction.value == value:
                 return direction
-        
-        
-        
+    
+    def get_current_health(game):
+        health = game["you"]["health"]
+        return health
+    
+    def is_food_consumed(game):
+        snake_head = game["you"]["head"]
+        food_positions = game["board"]["food"]
+        for food_pos in food_positions:
+            if snake_head == food_pos:
+                print("Food has been consumed")
+                break
+
+    def is_mySnake_alive(game):
+        my_snake_id = game["you"]["id"]
+        currently_alive_snakes = game["board"]["snakes"]
+
+        for snake in currently_alive_snakes:
+            if snake["id"] == my_snake_id:
+                print("Alive")
+                break  
+            else:
+                print("Dead")
+
