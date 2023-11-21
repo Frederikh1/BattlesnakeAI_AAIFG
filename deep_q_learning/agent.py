@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from deep_q_learning.model import Linear_QNet, QTrainer
+from .model import Linear_QNet, QTrainer
 from enum import Enum
 
 MAX_MEMORY = 100_000
@@ -60,22 +60,22 @@ class Agent:
         state = [
             #The three dangers are currently placeholders to avoid get to work first
             # Danger straight
-            (dir_r and my_neck["x"] < my_head["x"]) or 
-            (dir_l and my_neck["x"] > my_head["x"]) or 
-            (dir_u and my_neck["y"] < my_head["y"]) or 
-            (dir_d and my_neck["y"] > my_head["y"]),
+            (dir_r and self.is_collision(Direction.RIGHT)) or #my_neck["x"] < my_head["x"]
+            (dir_l and self.is_collision(Direction.LEFT)) or #my_neck["x"] > my_head["x"] 
+            (dir_u and self.is_collision(Direction.UP)) or #my_neck["y"] < my_head["y"] 
+            (dir_d and self.is_collision(Direction.DOWN)), #my_neck["y"] > my_head["y"]
 
             # Danger right
-            (dir_r and my_neck["x"] < my_head["x"]) or 
-            (dir_l and my_neck["x"] > my_head["x"]) or 
-            (dir_u and my_neck["y"] < my_head["y"]) or 
-            (dir_d and my_neck["y"] > my_head["y"]),
+            (dir_r and self.is_collision(Direction.RIGHT)) or 
+            (dir_l and self.is_collision(Direction.LEFT)) or 
+            (dir_u and self.is_collision(Direction.UP)) or 
+            (dir_d and self.is_collision(Direction.DOWN)),
 
             # Danger left
-            (dir_r and my_neck["x"] < my_head["x"]) or 
-            (dir_l and my_neck["x"] > my_head["x"]) or 
-            (dir_u and my_neck["y"] < my_head["y"]) or 
-            (dir_d and my_neck["y"] > my_head["y"]),
+            (dir_r and self.is_collision(Direction.RIGHT)) or 
+            (dir_l and self.is_collision(Direction.LEFT)) or 
+            (dir_u and self.is_collision(Direction.UP)) or 
+            (dir_d and self.is_collision(Direction.DOWN)),
             
             # Move direction
             dir_l,
@@ -91,6 +91,92 @@ class Agent:
             ]
 
         return np.array(state, dtype=int)
+
+
+
+
+
+    #function that determines if there is a DANGEROUS collision after moving in point DIRECTION
+    def is_collision(self, point):
+        me = game["you"]["id"]            # my snake id
+        my_head = game["you"]["body"][0]  # Coordinates of your head
+        my_neck = game["you"]["body"][1]  # Coordinates of your "neck"
+        board_height = game["board"]["height"] 
+        board_width = game["board"]["width"] 
+        snakes = game["board"]["snakes"]  #array of battlesnakes remaining on the game board
+        #only useful in certain game modes (check battlesnake API):
+        #hazards = game["board"]["hazards"] # to get the list of coords of the hazards.
+
+        #TODO: check what happens on the next move (if we go on a certain direction),
+        # not the current situation.
+        # Is there a way to simulate the move, so I can check the simulated future situation?
+        # hits boundary
+        if my_head['x'] > board_width or
+            my_head['x'] < 0 or my_head['y'] > board_height or my_head['y'] < 0:
+            return True
+
+        # hits itself
+        if my_head['x'] in my_neck[1:]:
+            return True
+
+        #hits other snakes
+        for i in len(snakes):
+            if snakes[i]["id"] != me: # considers only other snakes
+                its_head = snakes[i]["head"]        #coordinates of this snake's head
+                its_body = snakes[i]["body"][1:]    #coordinates of this snake's body (head excluded)
+                if snake_body_collision(its_head, its_body, my_head, my_neck):
+                    return True
+                if snake_head_collision(its_head, its_body, my_head, my_neck) == 'bad':
+                    return True
+                return True
+        return False
+
+    #return True if collision happens, False if not
+    def snake_body_collision(its_head, its_body, my_head, my_neck):
+        for i, body in enumerate(its_body):
+            if my_head['x'] == body['x'] and head['y'] == body['y']:
+                return True
+        return False
+
+    #return 'bad' if the snake dies, 'good' if it survives
+    def snake_head_collision(its_head, its_body, my_head, my_neck):
+        if my_head['x'] == its_head['x'] and my_head['y'] == its_head['y']:
+            if len(my_neck) <= len(its_body):
+                return 'bad'
+        return 'good'
+
+
+    #TODO change is_collision into closest_collision: it should find the closest obstacle
+    #and returns its coordinates (?)
+    #Keep danger straight, right and left but it still needs the direction the snake is moving to
+    #-->Or change to up,down,left,right so we know where the closest danger in each direction is
+
+
+    #WIP: function to find closest piece of food to snake head
+    #Can be implemented with different algorithms:
+    #- Hamming distance
+    #- Euclidian distance
+    #- manhattan distance (taxicab or city bllock)
+    #- Minkowsky distance
+    def closest_food(algorithm="hamming"):
+        foodies = game["board"]["food"] #food ccordinates array
+        if algorithm="hamming":
+            print("hamming distance")
+            #TODO
+        elif algorithm="euclidian":
+            print("euclidian distance")
+            #TODO
+        elif algorithm="manhattan":
+            print("manhattan distance")
+            #TODO
+        elif algorithm="minkowski":
+            print("minkowski distance")
+            #TODO
+
+
+
+
+
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
