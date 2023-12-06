@@ -31,7 +31,7 @@ class Linear_QNet(nn.Module):
         self.fc1 = nn.Linear(32 * 11 * 11, hidden_size)  # Assuming 11x11 grid and 32 channels
         self.fc2 = nn.Linear(hidden_size, output_size)
 
-    def forward(self, snake_positions, food_positions, other_features):
+    def forward(self,  state, snake_positions, food_positions):
         # Forward pass for snake positions
         snake_x = self.snake_cnn(snake_positions)
         snake_x = snake_x.view(snake_x.size(0), -1)
@@ -44,7 +44,7 @@ class Linear_QNet(nn.Module):
         x = torch.cat((snake_x, food_x), dim=1)
 
         # Fully connected layer for other features
-        other_x = F.relu(self.linear(other_features))
+        other_x = F.relu(self.linear(state))
 
         # Concatenate the outputs of CNN and fully connected layers
         x = torch.cat((x, other_x), dim=1)
@@ -116,47 +116,6 @@ class QTrainer:
         loss = self.criterion(target, pred)
         loss.backward()
 
-        # loss value
-        loss_value = loss.item()
-        print(f"Loss: {loss_value}")
-
-        self.optimizer.step()
-
-
-
-    def train_step(self, state, action, reward, next_state, done):
-        state = torch.tensor(state, dtype=torch.float)
-        next_state = torch.tensor(next_state, dtype=torch.float)
-        action = torch.tensor(action, dtype=torch.long)
-        reward = torch.tensor(reward, dtype=torch.float)
-        # (n, x)
-
-        if len(state.shape) == 1:
-            # (1, x)
-            state = torch.unsqueeze(state, 0)
-            next_state = torch.unsqueeze(next_state, 0)
-            action = torch.unsqueeze(action, 0)
-            reward = torch.unsqueeze(reward, 0)
-            done = (done, )
-
-        # 1: predicted Q values with current state
-        pred = self.model(state)
-
-        target = pred.clone()
-        for idx in range(len(done)):
-            Q_new = reward[idx]
-            if not done[idx]:
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
-
-            target[idx][torch.argmax(action[idx]).item()] = Q_new
-    
-        # 2: Q_new = r + y * max(next_predicted Q value) -> only do this if not done
-        # pred.clone()
-        # preds[argmax(action)] = Q_new
-        self.optimizer.zero_grad()
-        loss = self.criterion(target, pred)
-        loss.backward()
-        
         # loss value
         loss_value = loss.item()
         print(f"Loss: {loss_value}")

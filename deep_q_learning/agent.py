@@ -94,8 +94,10 @@ class Agent:
 
         return np.array(state, dtype=int)
 
-    def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
+    def remember(self, state, action, reward, next_state, done, old_snake_positions, old_food_positions
+                                , new_snake_positions, new_food_positions):
+        self.memory.append((state, action, reward, next_state, done, old_snake_positions, old_food_positions
+                                , new_snake_positions, new_food_positions)) # popleft if MAX_MEMORY is reached
 
     def train_long_memory(self):
         if len(self.memory) > BATCH_SIZE:
@@ -103,8 +105,9 @@ class Agent:
         else:
             mini_sample = self.memory
 
-        states, actions, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, actions, rewards, next_states, dones)
+        states, actions, rewards, next_states, dones, old_snake_positions, old_food_positions, new_snake_positions, new_food_positions = zip(*mini_sample)
+        self.trainer.train_step(states, actions, rewards, next_states, dones, old_snake_positions, old_food_positions
+                                , new_snake_positions, new_food_positions)
         #for state, action, reward, nexrt_state, done in mini_sample:
         #    self.trainer.train_step(state, action, reward, next_state, done)
 
@@ -129,11 +132,11 @@ class Agent:
     def start_position(self, game):
         # get old state
         self.state_old = self.get_state(game)
-
-        # get move
-        self.final_move = self.get_action(self.state_old)
         self.old_snake_positions = self.get_snake_positions(game)
         self.old_food_positions = self.create_food_board(game)
+
+        # get move
+        self.final_move = self.get_action(self.state_old, self.old_snake_positions, self.old_food_positions)
         self.current_direction = Direction.UP
     
     def get_next_move(self, game, reward, done, score):
@@ -146,7 +149,8 @@ class Agent:
                                 , new_snake_positions, new_food_positions)
 
         # remember
-        self.remember(self.state_old, self.final_move, reward, state_new, done)
+        self.remember(self.state_old, self.final_move, reward, state_new, done, self.old_snake_positions, self.old_food_positions
+                                , new_snake_positions, new_food_positions)
                 
         # get old state
         self.state_old = state_new
@@ -154,7 +158,7 @@ class Agent:
         self.old_food_positions = new_food_positions
 
         # get move
-        self.final_move = self.get_action(self.state_old)
+        self.final_move = self.get_action(self.state_old, self.old_snake_positions, self.old_food_positions)
         return self.__direction_in_string(self.final_move)
     
     def done(self):
@@ -184,13 +188,11 @@ class Agent:
             
     def get_snake_positions(self, game):
         board = self.create_board()
+        print(board)
         snakes = game["board"]["snakes"]
         own_snake = game["you"]
-        
-        for x in own_snake["body"]:
-            board[x["x"]][x["y"]] = 1
-        
-        self.add_positions(own_snake["body"], 1)
+               
+        self.add_positions(own_snake["body"], board, 1)
         
         identifier = 2
         for snake in snakes:
