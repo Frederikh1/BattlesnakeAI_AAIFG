@@ -73,6 +73,8 @@ class QTrainer:
 
     def train_step(self, state, action, reward, next_state, done, snake_positions, food_positions, next_snake_positions, next_food_positions):
         # Convert input data to PyTorch tensors
+        print("LOOK HERE")
+        print(action)
         snake_positions = torch.tensor(snake_positions, dtype=torch.float)
         food_positions = torch.tensor(food_positions, dtype=torch.float)
         state = torch.tensor(state, dtype=torch.float)
@@ -82,18 +84,22 @@ class QTrainer:
         next_food_positions = torch.tensor(next_food_positions, dtype=torch.float)
         next_state = torch.tensor(next_state, dtype=torch.float)  # Add next_state
 
-        # Handle the case where state is a 1D array
-        if len(snake_positions.shape) == 1:
+        if len(snake_positions.shape) == 2:
             snake_positions = torch.unsqueeze(snake_positions, 0)
             food_positions = torch.unsqueeze(food_positions, 0)
+            #next_snake_positions = torch.unsqueeze(next_snake_positions, 0)
+            #next_food_positions = torch.unsqueeze(next_food_positions, 0)
+
+        # Handle the case where state is a 1D array
+        if len(state.shape) == 1:
             state = torch.unsqueeze(state, 0)
             action = torch.unsqueeze(action, 0)
             reward = torch.unsqueeze(reward, 0)
-            next_snake_positions = torch.unsqueeze(next_snake_positions, 0)
-            next_food_positions = torch.unsqueeze(next_food_positions, 0)
             next_state = torch.unsqueeze(next_state, 0)  # Add next_state
             done = (done, )
 
+        print("State dimensions:", snake_positions.size())
+        print("Next state dimensions:", snake_positions.size())
         # Concatenate snake, food, and other positions
         con_state = (snake_positions, food_positions, state)
 

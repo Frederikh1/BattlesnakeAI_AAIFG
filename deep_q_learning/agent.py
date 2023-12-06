@@ -114,7 +114,8 @@ class Agent:
     def train_short_memory(self, state, action, reward, next_state, done, snake_positions, food_positions, next_snake_positions, next_food_positions):
         self.trainer.train_step(state, action, reward, next_state, done, snake_positions, food_positions, next_snake_positions, next_food_positions)
 
-    def get_action(self, state):
+    def get_action(self, state, snake_positions, food_positions):
+        print("please hvad foregår der???? SE HER SE HER SE HER SE HER")
         # random moves: tradeoff exploration / exploitation
         self.epsilon = 80 - self.n_games
         final_move = [0,0,0]
@@ -122,11 +123,20 @@ class Agent:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
-            state0 = torch.tensor(state, dtype=torch.float)
-            prediction = self.model(state0)
-            move = torch.argmax(prediction).item()
-            final_move[move] = 1
-
+            print("IT HITS THE TENSOR STUFF")
+            yeet = torch.tensor(state, dtype=torch.float)
+            snake_positions = torch.tensor(snake_positions, dtype=torch.float)
+            food_positions = torch.tensor(food_positions, dtype=torch.float)
+            snake_positions = torch.unsqueeze(snake_positions, 0)
+            food_positions = torch.unsqueeze(food_positions, 0)
+            state0 = (snake_positions, food_positions, yeet)
+            prediction = self.model(*state0)
+            final_move = torch.argmax(prediction).item()
+            #final_move[move] = 1
+        
+        print("THIS SUCKS SO MUCH I DONT EVEN KNOW")
+        print("LOOK HERE PLEASE WHERE IS IT")
+        print(final_move)
         return final_move
     
     def start_position(self, game):
@@ -203,7 +213,6 @@ class Agent:
             self.add_positions(body, board, identifier)
             identifier += 1
             
-        print(board)
         return board
             
     def create_food_board(self, game):
@@ -211,7 +220,6 @@ class Agent:
         board = self.create_board()
         food_positions = game["board"]["food"]
         self.add_positions(food_positions, board, food_identifier)
-        print(board)
         return board
         
     def create_board(self):
