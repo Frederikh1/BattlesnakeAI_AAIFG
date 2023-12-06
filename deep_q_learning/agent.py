@@ -129,10 +129,10 @@ class Agent:
             food_positions = torch.tensor(food_positions, dtype=torch.float)
             snake_positions = torch.unsqueeze(snake_positions, 0)
             food_positions = torch.unsqueeze(food_positions, 0)
-            state0 = (snake_positions, food_positions, yeet)
+            state0 = (yeet, snake_positions, food_positions)
             prediction = self.model(*state0)
-            final_move = torch.argmax(prediction).item()
-            #final_move[move] = 1
+            move = torch.argmax(prediction).item()
+            final_move[move] = 1
         
         print("THIS SUCKS SO MUCH I DONT EVEN KNOW")
         print("LOOK HERE PLEASE WHERE IS IT")

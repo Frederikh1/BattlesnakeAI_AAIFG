@@ -45,6 +45,7 @@ class Linear_QNet(nn.Module):
 
         # Fully connected layer for other features
         other_x = F.relu(self.linear(state))
+        print("Sizes - x:", x.size(), "other_x:", other_x.size())
 
         # Concatenate the outputs of CNN and fully connected layers
         x = torch.cat((x, other_x), dim=1)
@@ -87,8 +88,8 @@ class QTrainer:
         if len(snake_positions.shape) == 2:
             snake_positions = torch.unsqueeze(snake_positions, 0)
             food_positions = torch.unsqueeze(food_positions, 0)
-            #next_snake_positions = torch.unsqueeze(next_snake_positions, 0)
-            #next_food_positions = torch.unsqueeze(next_food_positions, 0)
+            next_snake_positions = torch.unsqueeze(next_snake_positions, 0)
+            next_food_positions = torch.unsqueeze(next_food_positions, 0)
 
         # Handle the case where state is a 1D array
         if len(state.shape) == 1:
@@ -99,9 +100,11 @@ class QTrainer:
             done = (done, )
 
         print("State dimensions:", snake_positions.size())
-        print("Next state dimensions:", snake_positions.size())
+        print("State dimensions:", food_positions.size())
+        print("Next State dimensions:", next_snake_positions.size())
+        print("Next state dimensions:", next_food_positions.size())
         # Concatenate snake, food, and other positions
-        con_state = (snake_positions, food_positions, state)
+        con_state = (state, snake_positions, food_positions)
 
         # 1: predicted Q values with current state
         pred = self.model(*con_state)
