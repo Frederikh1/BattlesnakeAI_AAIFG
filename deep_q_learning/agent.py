@@ -36,6 +36,10 @@ class Agent:
         food = game["board"]["food"][0]
         
         snake_board = self.get_snake_positions(game)
+        collision_left = self.get_next_collision(my_head, [-1,0], snake_board)
+        collision_up = self.get_next_collision(my_head, [0,-1], snake_board)
+        collision_right = self.get_next_collision(my_head, [1,0], snake_board)
+        collision_down = self.get_next_collision(my_head, [0,1], snake_board)
         
         dir_l = False
         dir_r = False
