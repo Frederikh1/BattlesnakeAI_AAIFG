@@ -1,7 +1,0 @@
-INFO 16:14:00.313262 Snake ID: 9615499d-2208-4a36-8381-861c52a40ad5 URL: https://battlesnake.up.railway.app/, Name: "AFK"
-INFO 16:14:00.626701 Snake ID: 61d8f68f-8a8a-4277-95e4-aac6d914dc49 URL: http://localhost:8000/, Name: "Adam"
-INFO 16:14:01.096418 Ruleset: standard, Seed: 1701875639994681600
-INFO 16:14:01.097172 Turn: 0, Snakes Alive: [AFK, Adam], Food: 3, Hazards: 0
-INFO 16:14:01.415026 Turn: 1, Snakes Alive: [AFK, Adam], Food: 3, Hazards: 0
-INFO 16:14:01.731952 Turn: 2, Snakes Alive: [AFK], Food: 2, Hazards: 0
-INFO 16:14:02.513569 Game completed after 3 turns. AFK was the winner.
