@@ -175,12 +175,28 @@ class Agent:
             if direction.value == value:
                 return direction
     
-    def get_next_collision(head, direction, board):
+    def get_next_collision(self, head, direction, board):
         min = 0
+        start = min+1
         max = board.length -1
-        return 0
-
-        
+        next_collision = 0
+        if(direction[0] != 0):
+            head_x = head[0]
+            for x in range (start, max):
+                position = head_x + (x*direction[0])
+                if(position<min or position>max or board[position][head[1]] == 1):
+                    print("done")
+                    break
+                next_collision+=1
+        if(direction[1] != 0):
+            head_y = head[1]
+            for x in range (start, max):
+                position = head_y + (x*direction[0])
+                if(position<min or position>max or board[head[0]][position] == 1):
+                    print("done")
+                    break
+                next_collision+=1
+        return next_collision
         
     def get_snake_positions(self, game):
         board = self.create_board()
@@ -205,3 +221,7 @@ class Agent:
         dimension = 11
         board = np.zeros((dimension, dimension), dtype=int)
         return board
+    
+    def add_positions(self, positions, board, value):
+        for x in positions:
+            board[x["x"]][x["y"]] = value
