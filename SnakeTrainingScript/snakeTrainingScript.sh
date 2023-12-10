@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#Executable permissions:
+chmod +x ../BattlesnakeLinux/battlesnake
+
 win=0
 draw=0
 lose=0
