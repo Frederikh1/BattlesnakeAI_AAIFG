@@ -35,6 +35,8 @@ class Agent:
         my_neck = game["you"]["body"][1]  # Coordinates of your "neck"
         food = game["board"]["food"][0]
         
+        snake_board = self.get_snake_positions(game)
+        
         dir_l = False
         dir_r = False
         dir_u = False
@@ -172,6 +174,34 @@ class Agent:
         for direction in Direction:
             if direction.value == value:
                 return direction
+    
+    def get_next_collision(head, direction, board):
+        min = 0
+        max = board.length -1
+        return 0
+
         
         
+    def get_snake_positions(self, game):
+        board = self.create_board()
+        print(board)
+        snakes = game["board"]["snakes"]
+        own_snake = game["you"]
+               
+        self.add_positions(own_snake["body"], board, 1)
         
+        identifier = 2
+        for snake in snakes:
+            if(own_snake["id"] == snake["id"]):
+                continue
+            
+            body = snake["body"]
+            self.add_positions(body, board, identifier)
+            identifier += 1
+            
+        return board
+    
+    def create_board(self):
+        dimension = 11
+        board = np.zeros((dimension, dimension), dtype=int)
+        return board
