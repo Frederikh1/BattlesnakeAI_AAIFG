@@ -27,12 +27,19 @@ class SnakeGameAI:
         score = game["you"]["length"]
         action = self.agent.get_next_move(game, reward, self.game_over, score)
         return action
+    
+    def get_reward(self, game):
+        reward = 0
+        reward += self.is_mySnake_alive(game)
+        if(self.is_food_consumed(game)):
+            reward += 2
+        return 0
 
-    def get_current_health(game):
+    def get_current_health(self, game):
         health = game["you"]["health"]
         return health
 
-    def is_food_consumed(game):
+    def is_food_consumed(self, game):
         snake_head = game["you"]["head"]
         food_positions = game["board"]["food"]
         for food_pos in food_positions:
@@ -40,7 +47,7 @@ class SnakeGameAI:
                 print("Food has been consumed")
                 break
 
-    def is_mySnake_alive(game):
+    def is_mySnake_alive(self, game):
         my_snake_id = game["you"]["id"]
         currently_alive_snakes = game["board"]["snakes"]
 
