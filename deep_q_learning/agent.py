@@ -10,10 +10,10 @@ BATCH_SIZE = 1000
 LR = 0.001
 
 class Direction(Enum):
-    DOWN = 1
-    LEFT = 2
-    UP = 3
-    RIGHT = 4
+    DOWN = 0
+    LEFT = 1
+    UP = 2
+    RIGHT = 3
 
 class Agent:
     state_old = None
@@ -25,7 +25,7 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(15, 256, 3)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -93,7 +93,11 @@ class Agent:
             food['x'] < my_head['x'],  # food left
             food['x'] > my_head['x'],  # food right
             food['y'] < my_head['y'],  # food up
-            food['y'] > my_head['y']  # food down
+            food['y'] > my_head['y'],  # food down
+            collision_left,
+            collision_up,
+            collision_right,
+            collision_down
             ]
 
         return np.array(state, dtype=int)
@@ -160,17 +164,14 @@ class Agent:
         self.model.save()
     
     def __direction_in_string(self, direction_state):
-        print(direction_state)
         direction = 0
         if direction_state == [1, 0, 0]: #left
             direction =- 1
         elif direction_state == [0, 0, 1]: #right
             direction =+ 1
         
-        new_direction = (self.current_direction.value + direction) % 4
-        print(new_direction)
+        new_direction = (self.current_direction.value + direction) % len(Direction)
         direction = (self.get_direction_from_value(new_direction))
-        print(direction)
         self.current_direction = direction
         return direction.name.lower()
             
@@ -182,29 +183,26 @@ class Agent:
     def get_next_collision(self, head, direction, board):
         min = 0
         start = min+1
-        max = board.length -1
+        max = len(board) -1
         next_collision = 0
         if(direction[0] != 0):
-            head_x = head[0]
+            head_x = head["x"]
             for x in range (start, max):
                 position = head_x + (x*direction[0])
-                if(position<min or position>max or board[position][head[1]] == 1):
-                    print("done")
+                if(position<min or position>max or board[position][head["y"]] == 1):
                     break
                 next_collision+=1
         if(direction[1] != 0):
-            head_y = head[1]
+            head_y = head["y"]
             for x in range (start, max):
                 position = head_y + (x*direction[0])
-                if(position<min or position>max or board[head[0]][position] == 1):
-                    print("done")
+                if(position<min or position>max or board[head["x"]][position] == 1):
                     break
                 next_collision+=1
         return next_collision
         
     def get_snake_positions(self, game):
         board = self.create_board()
-        print(board)
         snakes = game["board"]["snakes"]
         own_snake = game["you"]
                
