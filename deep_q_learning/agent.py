@@ -189,14 +189,14 @@ class Agent:
             head_x = head["x"]
             for x in range (start, max):
                 position = head_x + (x*direction[0])
-                if(position<min or position>max or board[position][head["y"]] == 1):
+                if(position<min or position>max or board[position][head["y"]] != 0):
                     break
                 next_collision+=1
         if(direction[1] != 0):
             head_y = head["y"]
             for x in range (start, max):
                 position = head_y + (x*direction[0])
-                if(position<min or position>max or board[head["x"]][position] == 1):
+                if(position<min or position>max or board[head["x"]][position] != 0):
                     break
                 next_collision+=1
         return next_collision
