@@ -6,7 +6,7 @@ chmod +x ../BattlesnakeLinux/battlesnake
 win=0
 draw=0
 lose=0
-loopcount=2
+loopcount=100
 
 # Loop through the game plays
 while [ $loopcount -gt 0 ]; do
