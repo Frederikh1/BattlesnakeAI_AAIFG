@@ -27,3 +27,26 @@ class SnakeGameAI:
         score = game["you"]["length"]
         action = self.agent.get_next_move(game, reward, self.game_over, score)
         return action
+
+    def get_current_health(game):
+        health = game["you"]["health"]
+        return health
+
+    def is_food_consumed(game):
+        snake_head = game["you"]["head"]
+        food_positions = game["board"]["food"]
+        for food_pos in food_positions:
+            if snake_head == food_pos:
+                print("Food has been consumed")
+                break
+
+    def is_mySnake_alive(game):
+        my_snake_id = game["you"]["id"]
+        currently_alive_snakes = game["board"]["snakes"]
+
+        for snake in currently_alive_snakes:
+            if snake["id"] == my_snake_id:
+                print("Alive")
+                break  
+            else:
+                print("Dead")
