@@ -25,7 +25,7 @@ class SnakeGameAI:
   def end(self, game):
     game_over = True
     reward = self.get_reward(game)
-    self.isSnakeAlive(game)
+    snake_alive = self.isSnakeAlive(game)
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
@@ -102,14 +102,9 @@ class SnakeGameAI:
 
     if is_alive:
       self.alive_snakes[game_id] = game
-      for game_id_saved in self.alive_snakes.keys():
-        print("Live Game ID: ", game_id_saved)
       return True
     else:
-      if not self.alive_snakes:
-        print("No ID")
-        return False
-      elif game_id in self.alive_snakes:
+      if game_id in self.alive_snakes:
         del self.alive_snakes[game_id]
         return False
 
