@@ -3,6 +3,7 @@ import random
 import numpy as np
 from collections import deque
 from deep_q_learning.model import Linear_QNet, QTrainer
+from deep_q_learning.state import State
 from enum import Enum
 
 MAX_MEMORY = 100_000
@@ -16,10 +17,8 @@ class Direction(Enum):
   UP = 2
   RIGHT = 3
 
-
 class Agent:
-  state_old = None
-  final_move = None
+  old_states = None
   current_direction = None
 
   def __init__(self):
@@ -29,6 +28,7 @@ class Agent:
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
     self.model = Linear_QNet(15, 256, 3)
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+    self.old_states = State()
 
   def get_state(self, game):
     # We've included code to prevent your Battlesnake from moving backwards
@@ -138,28 +138,33 @@ class Agent:
 
   def start_position(self, game):
     # get old state
-    self.state_old = self.get_state(game)
+    state_old = self.get_state(game)
 
     # get move
-    self.final_move = self.get_action(self.state_old)
+    final_move = self.get_action(state_old)
+    
+    self.old_states.save_old_states(game, state_old, final_move)
+    
     self.current_direction = Direction.UP
 
   def get_next_move(self, game, reward, done, score):
     # perform move and get new state
     state_new = self.get_state(game)
+    state_old, final_move = self.old_states.get_old_states(game)
     # train short memory
-    self.train_short_memory(self.state_old, self.final_move, reward, state_new,
+    self.train_short_memory(state_old, final_move, reward, state_new,
                             done)
 
     # remember
-    self.remember(self.state_old, self.final_move, reward, state_new, done)
+    self.remember(state_old, final_move, reward, state_new, done)
 
     # get old state
-    self.state_old = state_new
+    state_old = state_new
 
     # get move
-    self.final_move = self.get_action(self.state_old)
-    return self.__direction_in_string(self.final_move)
+    final_move = self.get_action(state_old)
+    self.old_states.save_old_states(game, state_old, final_move)
+    return self.__direction_in_string(final_move)
 
   def done(self):
     self.n_games += 1
@@ -236,3 +241,4 @@ class Agent:
       if x["x"] > 10 or x["y"] > 10:
         continue
       board[x["x"]][x["y"]] = value
+      

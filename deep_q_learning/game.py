@@ -1,37 +1,38 @@
 import random
 from collections import namedtuple
 from deep_q_learning.agent import Agent, Direction
+import deep_q_learning.state as st
 import numpy as np
 
 
 class SnakeGameAI:
-  latestGame = None
-  agent = Agent()
-  game_over = False
-  last_food_position = None
+  current_games = None
+  agent = None
 
   def __init__(self):
-    self.direction = Direction.UP
+    self.agent = Agent()
+    self.current_games = {}
 
   def reset(self, game):
     # init game state
-    self.last_food_position = game["board"]["food"]
+    self.save_game(game)
     self.agent.start_position(game)
 
   def set_state(self, state):
     self.latestState = state
 
   def end(self, game):
-    self.game_over = True
+    game_over = True
     reward = self.get_reward(game)
     score = game["you"]["length"]
-    action = self.agent.get_next_move(game, reward, self.game_over, score)
+    action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
 
   def play_step(self, game):
     reward = self.get_reward(game)
+    game_over = False
     score = game["you"]["length"]
-    action = self.agent.get_next_move(game, reward, self.game_over, score)
+    action = self.agent.get_next_move(game, reward, game_over, score)
     return action
 
   def get_reward(self, game):
@@ -47,16 +48,15 @@ class SnakeGameAI:
 
   def is_food_consumed(self, game):
     snake_head = game["you"]["head"]
-    food_positions = self.last_food_position
+    food_positions = self.get_last_food_positions(game)
     has_eaten_food = False
     for food_pos in food_positions:
       if snake_head == food_pos:
         print("Food has been consumed")
         has_eaten_food = True
         break
-    self.last_food_position = game["board"]["food"]
+    self.save_game(game)
     return has_eaten_food
-    return False
 
   def did_mySnake_win(self, game):
     my_snake_id = game["you"]["id"]
@@ -75,3 +75,13 @@ class SnakeGameAI:
       return 0
     print("-- Lost --")
     return -10
+  
+  def get_last_food_positions(self, game):
+    id = st.get_id_from_game(game)
+    state = self.current_games[id]
+    food_positions = state["board"]["food"]
+    return food_positions
+  
+  def save_game(self, game):
+    id = st.get_id_from_game(game)
+    self.current_games[id] = game
