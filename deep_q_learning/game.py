@@ -8,7 +8,7 @@ import numpy as np
 class SnakeGameAI:
   current_games = None
   agent = None
-  current_games = {}
+  alive_snakes = {}
 
   def __init__(self):
     self.agent = Agent()
@@ -25,12 +25,15 @@ class SnakeGameAI:
   def end(self, game):
     game_over = True
     reward = self.get_reward(game)
+    self.isSnakeAlive(game)
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
     id = st.get_id_from_game(game)
     old_game = self.current_games[id]
     save.save_stats(old_game, self.did_mySnake_win(old_game))
+    #Hihi
+    del self.current_games[id]
 
   def play_step(self, game):
     reward = self.get_reward(game)
@@ -95,12 +98,18 @@ class SnakeGameAI:
     game_id = game["game"]["id"]
     currently_alive_snakes = game["board"]["snakes"]
 
-    for snake in currently_alive_snakes:
-      if snake["id"] == my_snake_id:
-        self.current_games[game_id] = game
-        return True
+    is_alive = any(snake["id"] == my_snake_id for snake in currently_alive_snakes)
 
-    if game_id in self.current_games:
-      del self.current_games[game_id]
+    if is_alive:
+      self.alive_snakes[game_id] = game
+      for game_id_saved in self.alive_snakes.keys():
+        print("Live Game ID: ", game_id_saved)
+      return True
+    else:
+      if not self.alive_snakes:
+        print("No ID")
+        return False
+      elif game_id in self.alive_snakes:
+        del self.alive_snakes[game_id]
+        return False
 
-    return False
