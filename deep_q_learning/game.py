@@ -2,6 +2,7 @@ import random
 from collections import namedtuple
 from deep_q_learning.agent import Agent, Direction
 import deep_q_learning.state as st
+import deep_q_learning.save_statistics as save
 import numpy as np
 
 
@@ -27,6 +28,9 @@ class SnakeGameAI:
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
+    id = st.get_id_from_game(game)
+    old_game = self.current_games[id]
+    save.save_stats(old_game, self.did_mySnake_win(old_game))
 
   def play_step(self, game):
     reward = self.get_reward(game)
