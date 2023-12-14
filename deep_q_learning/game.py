@@ -4,10 +4,10 @@ from deep_q_learning.agent import Agent, Direction
 import deep_q_learning.state as st
 import numpy as np
 
-
 class SnakeGameAI:
   current_games = None
   agent = None
+  current_games = {}
 
   def __init__(self):
     self.agent = Agent()
@@ -85,3 +85,18 @@ class SnakeGameAI:
   def save_game(self, game):
     id = st.get_id_from_game(game)
     self.current_games[id] = game
+
+  def isSnakeAlive(self, game):
+    my_snake_id = game["you"]["id"]
+    game_id = game["game"]["id"]
+    currently_alive_snakes = game["board"]["snakes"]
+
+    for snake in currently_alive_snakes:
+      if snake["id"] == my_snake_id:
+        self.current_games[game_id] = game
+        return True
+
+    if game_id in self.current_games:
+      del self.current_games[game_id]
+
+    return False
