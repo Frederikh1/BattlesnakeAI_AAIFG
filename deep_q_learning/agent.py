@@ -28,6 +28,9 @@ class Agent:
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
     self.model = Linear_QNet(15, 256, 3)
+    #comment if you don't want to load from the saved model
+    self.model.load()
+    print('loaded saved model')
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
   def get_state(self, game):
