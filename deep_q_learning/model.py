@@ -23,6 +23,8 @@ class Linear_QNet(nn.Module):
 
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
+        print("Model saved succesfully in: "+file_name)
+        print(self.state_dict())
 
     def load(self, file_name='model.pth'):
         model_folder_path = './model'
@@ -33,6 +35,7 @@ class Linear_QNet(nn.Module):
         checkpoint = torch.load(file_path)
         self.load_state_dict(checkpoint)
         print("Model loaded succesfully from: "+file_path)
+        print(checkpoint)
         
 
 

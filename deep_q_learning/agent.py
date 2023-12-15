@@ -1,3 +1,4 @@
+import struct
 import torch
 import random
 import numpy as np
@@ -27,7 +28,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(15, 256, 3)
+    self.model = Linear_QNet(16, 256, 3)
     #comment if you don't want to load from the saved model
     self.model.load()
     print('loaded saved model')
@@ -44,6 +45,8 @@ class Agent:
     collision_up = self.get_next_collision(my_head, [0, -1], snake_board)
     collision_right = self.get_next_collision(my_head, [1, 0], snake_board)
     collision_down = self.get_next_collision(my_head, [0, 1], snake_board)
+
+    coded_coords = self.code_coords(game["board"]["food"])
 
     dir_l = False
     dir_r = False
@@ -98,6 +101,11 @@ class Agent:
         food['x'] > my_head['x'],  # food right
         food['y'] < my_head['y'],  # food up
         food['y'] > my_head['y'],  # food down
+        #food locations int
+        coded_coords,
+        #path to food? 
+        #food locations? needs full map/matrix
+
         collision_left,
         collision_up,
         collision_right,
@@ -105,6 +113,41 @@ class Agent:
     ]
 
     return np.array(state, dtype=int)
+
+  #function to code coords in json format into a int value
+  def code_coords(self, coords):
+    coded_data = ""
+    for pair in coords:
+        coded_data += str(pair['x']) + str(pair['y'])
+    
+    return int(coded_data)
+  
+  #function to decode coords from a binary string into a json format
+  def decode_coords(self, coded_coords):
+    coded_data = str(coded_coords)
+    
+    coords = []
+    for i in range(0, len(coded_data), 2):
+        x = int(coded_data[i])
+        y = int(coded_data[i+1])
+        coords.append({"x": x, "y": y})
+    
+    return coords
+  
+  ###
+  # Example of use of code_coords and decode_coords
+  #original_coords = [
+  #    {"x": 5, "y": 5},
+  #    {"x": 9, "y": 0},
+  #    {"x": 2, "y": 6}
+  #]
+  #coded_coords = code_coords(original_coords)
+  #decoded_coords = decode_coords(coded_coords)
+
+  #print("original coordinates:", original_coords)
+  #print("coded int:", coded_coords)
+  #print("decoded coordinates:", decode_coords)
+  ###
 
   def remember(self, state, action, reward, next_state, done):
     self.memory.append((state, action, reward, next_state,
