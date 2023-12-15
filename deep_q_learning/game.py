@@ -25,7 +25,6 @@ class SnakeGameAI:
     id = st.get_id_from_game(game)
     if(not (id in self.current_games)):
       return
-    print("End called!!!")
     game_over = True
     reward = self.get_reward(game)
     score = game["you"]["length"]
