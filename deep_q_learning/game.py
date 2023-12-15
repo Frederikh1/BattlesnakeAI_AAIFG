@@ -27,19 +27,20 @@ class SnakeGameAI:
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
-
+  
   def play_step(self, game):
     reward = self.get_reward(game)
-    game_over = False
     score = game["you"]["length"]
-    action = self.agent.get_next_move(game, reward, game_over, score)
+    action = self.agent.get_next_move(game, reward, self.game_over, score)
     return action
-
+  
   def get_reward(self, game):
     reward = 0
     reward += self.did_mySnake_win(game)
     if (self.is_food_consumed(game)):
-      reward += 1
+        reward += 1
+    elif (self.get_current_health < 20 & self.is_food_consumed(game) == True):
+        reward += 2
     return reward
 
   def get_current_health(self, game):
@@ -61,21 +62,6 @@ class SnakeGameAI:
   def did_mySnake_win(self, game):
     my_snake_id = game["you"]["id"]
     currently_alive_snakes = game["board"]["snakes"]
-    def play_step(self, game):
-        reward = self.get_reward(game)
-        score = game["you"]["length"]
-        action = self.agent.get_next_move(game, reward, self.game_over, score)
-        return action
-
-    def get_reward(self, game):
-        reward = 0
-        reward += self.did_mySnake_win(game)
-        if (self.is_food_consumed(game)):
-            reward += 1
-        elif (self.get_current_health < 20 & self.is_food_consumed(game) == True)
-            reward += 2
-        return reward
-
     snake_ids = [snake["id"] for snake in currently_alive_snakes]
     my_snake_count = snake_ids.count(my_snake_id)
     # my_snake_index = snake_ids.index(my_snake_id) if my_snake_id in snake_ids else -1
