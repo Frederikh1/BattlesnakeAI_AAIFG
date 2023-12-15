@@ -2,8 +2,8 @@ import random
 from collections import namedtuple
 from deep_q_learning.agent import Agent, Direction
 import deep_q_learning.state as st
+import deep_q_learning.save_statistics as save
 import numpy as np
-
 
 class SnakeGameAI:
   current_games = None
@@ -22,17 +22,26 @@ class SnakeGameAI:
     self.latestState = state
 
   def end(self, game):
+    id = st.get_id_from_game(game)
+    if(not (id in self.current_games)):
+      return
     game_over = True
     reward = self.get_reward(game)
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.agent.done()
-  
+    save.save_stats(game, self.did_mySnake_win(game))
+    del self.current_games[id]
+
   def play_step(self, game):
+    if(not self.isSnakeAlive(game)):
+      self.end(game)
+      return
     reward = self.get_reward(game)
     game_over = False
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
+    self.save_game(game)
     return action
   
   def get_reward(self, game):
@@ -57,7 +66,6 @@ class SnakeGameAI:
         print("Food has been consumed")
         has_eaten_food = True
         break
-    self.save_game(game)
     return has_eaten_food
 
   def did_mySnake_win(self, game):
@@ -86,3 +94,16 @@ class SnakeGameAI:
   def save_game(self, game):
     id = st.get_id_from_game(game)
     self.current_games[id] = game
+
+  def isSnakeAlive(self, game):
+    my_snake_id = game["you"]["id"]
+    game_id = game["game"]["id"]
+    currently_alive_snakes = game["board"]["snakes"]
+
+    is_alive = any(snake["id"] == my_snake_id for snake in currently_alive_snakes)
+
+    if is_alive:
+      return True
+    else:
+      return False
+
