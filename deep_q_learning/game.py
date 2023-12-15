@@ -30,8 +30,9 @@ class SnakeGameAI:
   
   def play_step(self, game):
     reward = self.get_reward(game)
+    game_over = False
     score = game["you"]["length"]
-    action = self.agent.get_next_move(game, reward, self.game_over, score)
+    action = self.agent.get_next_move(game, reward, game_over, score)
     return action
   
   def get_reward(self, game):
