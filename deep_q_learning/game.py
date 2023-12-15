@@ -39,7 +39,7 @@ class SnakeGameAI:
     reward += self.did_mySnake_win(game)
     if (self.is_food_consumed(game)):
         reward += 1
-    elif (self.get_current_health < 20 & self.is_food_consumed(game) == True):
+    elif (self.get_current_health(game) < 20 & self.is_food_consumed(game) == True):
         reward += 2
     return reward
 
