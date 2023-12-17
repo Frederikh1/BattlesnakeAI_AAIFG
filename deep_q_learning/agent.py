@@ -56,13 +56,9 @@ class Agent:
     direction_input = self.convert_to_bool_directions(self.current_direction)
     
     distance_to_food, food_path_coordinate = self.get_closest_food(food, my_head, snake_board)
-    print("first path: ", food_path_coordinate)
-    print("head: ", my_head)
     food_path_coordinate = self.direction_to_dictionary(food_path_coordinate)
     food_path_direction = self.get_direction(my_head, food_path_coordinate)
-    print("direction: ", food_path_direction)
     food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
-    print("input: ", food_path_direction_inputs)
 
     # We probably need some kind of vector as basis figure out which locations in the field which are unreachable
     if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
