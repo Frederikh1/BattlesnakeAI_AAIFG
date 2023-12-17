@@ -2,6 +2,7 @@ import struct
 import torch
 import random
 import numpy as np
+import deep_q_learning.a_star as astar
 from collections import deque
 from deep_q_learning.model import Linear_QNet, QTrainer
 from deep_q_learning.state import State
@@ -29,7 +30,7 @@ class Agent:
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
     self.model = Linear_QNet(16, 256, 3)
     #comment if you don't want to load from the saved model
-    self.model.load()
+    #self.model.load()
     print('loaded saved model')
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
     self.old_states = State()
@@ -38,20 +39,30 @@ class Agent:
     # We've included code to prevent your Battlesnake from moving backwards
     my_head = game["you"]["body"][0]  # Coordinates of your head
     my_neck = game["you"]["body"][1]  # Coordinates of your "neck"
-    food = game["board"]["food"][0]
+    food = game["board"]["food"]
 
     snake_board = self.get_snake_positions(game)
     collision_left = self.get_next_collision(my_head, [-1, 0], snake_board)
-    collision_up = self.get_next_collision(my_head, [0, -1], snake_board)
+    collision_up = self.get_next_collision(my_head, [0, 1], snake_board)
     collision_right = self.get_next_collision(my_head, [1, 0], snake_board)
-    collision_down = self.get_next_collision(my_head, [0, 1], snake_board)
-
-    coded_coords = self.code_coords(game["board"]["food"])
+    collision_down = self.get_next_collision(my_head, [0, -1], snake_board)
 
     dir_l = False
     dir_r = False
     dir_u = False
     dir_d = False
+    
+    self.current_direction = self.get_direction(my_neck, my_head)
+    direction_input = self.convert_to_bool_directions(self.current_direction)
+    
+    distance_to_food, food_path_coordinate = self.get_closest_food(food, my_head, snake_board)
+    print("first path: ", food_path_coordinate)
+    print("head: ", my_head)
+    food_path_coordinate = self.direction_to_dictionary(food_path_coordinate)
+    food_path_direction = self.get_direction(my_head, food_path_coordinate)
+    print("direction: ", food_path_direction)
+    food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
+    print("input: ", food_path_direction_inputs)
 
     # We probably need some kind of vector as basis figure out which locations in the field which are unreachable
     if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
@@ -90,64 +101,21 @@ class Agent:
         or (dir_u and my_neck["y"] < my_head["y"])
         or (dir_d and my_neck["y"] > my_head["y"]),
 
-        # Move direction
-        dir_l,
-        dir_r,
-        dir_u,
-        dir_d,
-
-        # Food location
-        food['x'] < my_head['x'],  # food left
-        food['x'] > my_head['x'],  # food right
-        food['y'] < my_head['y'],  # food up
-        food['y'] > my_head['y'],  # food down
-        #food locations int
-        coded_coords,
-        #path to food? 
-        #food locations? needs full map/matrix
-
         collision_left,
         collision_up,
         collision_right,
-        collision_down
+        collision_down,
+        
+        distance_to_food
     ]
+    
+    #Add move direction
+    state+= direction_input
+    
+    #Adding directions to get to food the quickest
+    state+=food_path_direction_inputs
 
     return np.array(state, dtype=int)
-
-  #function to code coords in json format into a int value
-  def code_coords(self, coords):
-    coded_data = ""
-    for pair in coords:
-        coded_data += str(pair['x']) + str(pair['y'])
-    
-    return int(coded_data)
-  
-  #function to decode coords from a binary string into a json format
-  def decode_coords(self, coded_coords):
-    coded_data = str(coded_coords)
-    
-    coords = []
-    for i in range(0, len(coded_data), 2):
-        x = int(coded_data[i])
-        y = int(coded_data[i+1])
-        coords.append({"x": x, "y": y})
-    
-    return coords
-  
-  ###
-  # Example of use of code_coords and decode_coords
-  #original_coords = [
-  #    {"x": 5, "y": 5},
-  #    {"x": 9, "y": 0},
-  #    {"x": 2, "y": 6}
-  #]
-  #coded_coords = code_coords(original_coords)
-  #decoded_coords = decode_coords(coded_coords)
-
-  #print("original coordinates:", original_coords)
-  #print("coded int:", coded_coords)
-  #print("decoded coordinates:", decode_coords)
-  ###
 
   def remember(self, state, action, reward, next_state, done):
     self.memory.append((state, action, reward, next_state,
@@ -258,6 +226,20 @@ class Agent:
           break
         next_collision += 1
     return next_collision
+  
+  def get_closest_food(self, food_positions, head, snake_board):
+    head = (head["x"], head["y"])
+    max_range = 11*11
+    closest_food = max_range
+    coordinate = None
+    for position in food_positions:
+      goal = (position["x"], position["y"])
+      path = astar.astar(snake_board, head, goal)
+      if path and len(path)<closest_food:
+        closest_food = len(path)
+        coordinate = [path[1][0], path[1][1]]
+    return closest_food, coordinate
+      
 
   def get_snake_positions(self, game):
     board = self.create_board()
@@ -287,4 +269,37 @@ class Agent:
       if x["x"] > 10 or x["y"] > 10:
         continue
       board[x["x"]][x["y"]] = value
+      
+  def direction_to_dictionary(self, array):
+    if array is None:
+      return
+    dictionary = {"x": array[0], "y": array[1]}
+    return dictionary
+      
+  def get_direction(self, current, goal):
+    if current is None or goal is None:
+        return None 
+    if current["x"] < goal["x"]:  # Neck is left of head, don't move left
+      return Direction.RIGHT
+
+    elif current["x"] > goal["x"]:  # Neck is right of head, don't move right
+      return Direction.LEFT
+
+    elif current["y"] < goal["y"]:  # Neck is below head, don't move down
+      return Direction.UP
+
+    elif current["y"] > goal["y"]:  # Neck is above head, don't move up
+      return Direction.DOWN
+    
+    return Direction.UP
+    
+  #This should always put the directions in the same spot
+  def convert_to_bool_directions(self, direction):
+    directions = []
+    for dir in Direction:
+      directions.append(False)
+    
+    if(direction is not None):
+      directions[direction.value] = True
+    return directions
       
