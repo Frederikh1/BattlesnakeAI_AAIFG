@@ -2,11 +2,12 @@ import struct
 import torch
 import random
 import numpy as np
+from deep_q_learning.floodFill import flood_fill
 from collections import deque
 from deep_q_learning.model import Linear_QNet, QTrainer
 from deep_q_learning.state import State
 from enum import Enum
-from floodFill import flood_fill
+
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -225,6 +226,11 @@ class Agent:
     for move_direction, new_position in potential_moves.items():
       temp_board = np.copy(board)  # Copy board to simulate the move
       accessible_area_size = flood_fill(temp_board, new_position)
+
+      #logging
+      with open("floodFillLogging.txt", "a") as file:
+        file.write(f"Position: {current_position}, Move: {move_direction}, Accessible Area: {accessible_area_size}\n")
+
       move_scores[move_direction] = accessible_area_size
 
     # Choose the best move based on Flood Fill results
