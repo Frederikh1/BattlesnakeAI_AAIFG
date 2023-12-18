@@ -59,26 +59,3 @@ def astar(grid, start, goal):
                 heapq.heappush(open_list, neighbor_node)
 
     return None  # No path found
-
-# Example usage:
-grid = [
-    [0, 0, 0, 0, 0],
-    [1, 1, 1, 0, 1],
-    [0, 0, 0, 0, 1],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0]
-]
-start = (2, 1)
-goal = (4, 4)
-path = astar(grid, start, goal)
-
-if path:
-    print("Path found:", path)
-    print("length: ", len(path))
-    print("direction: ", path[0])
-else:
-    print("No path found")
-    
-end_time = time.time()
-execution_time = end_time - start_time
-print(f"Execution time: {execution_time} seconds")
