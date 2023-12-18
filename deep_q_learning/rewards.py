@@ -13,26 +13,15 @@ def is_head_to_head_win(game):
     return False
 
 
-def is_consuming_food_low_health(game):
+def is_low_health(game):
     my_snake = game["you"]
     health = my_snake["health"]
-    food = game["board"]["food"]
+    return health < 25
 
-    # Assuming you have a way to check if food was consumed this turn
-    return health < 25 and my_snake["body"][0] in food
-
-
-def is_taking_space(game):
-    # Implement logic to check if the snake is taking space effectively
-    pass
-
-def is_consuming_food_high_health(game):
+def is_high_health(game):
     my_snake = game["you"]
     health = my_snake["health"]
-    food = game["board"]["food"]
-
-    # Assuming you have a way to check if food was consumed this turn
-    return health >= 25 and my_snake["body"][0] in food
+    return health >= 25
 
 
 def is_wall_collision(game):
