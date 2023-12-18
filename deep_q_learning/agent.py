@@ -30,7 +30,7 @@ class Agent:
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
     self.model = Linear_QNet(16, 256, 3)
     #comment if you don't want to load from the saved model
-    #self.model.load()
+    self.model.load()
     print('loaded saved model')
     self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
     self.old_states = State()
@@ -258,16 +258,16 @@ class Agent:
   def get_direction(self, current, goal):
     if current is None or goal is None:
         return None 
-    if current["x"] < goal["x"]:  # Neck is left of head, don't move left
+    if current["x"] < goal["x"]:
       return Direction.RIGHT
 
-    elif current["x"] > goal["x"]:  # Neck is right of head, don't move right
+    elif current["x"] > goal["x"]:
       return Direction.LEFT
 
-    elif current["y"] < goal["y"]:  # Neck is below head, don't move down
+    elif current["y"] < goal["y"]:
       return Direction.UP
 
-    elif current["y"] > goal["y"]:  # Neck is above head, don't move up
+    elif current["y"] > goal["y"]:
       return Direction.DOWN
     
     return Direction.UP
