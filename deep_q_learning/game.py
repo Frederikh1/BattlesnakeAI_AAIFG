@@ -57,13 +57,13 @@ class SnakeGameAI:
         reward += 2
 
     #reward += 3 if rw.is_head_to_head_win(game) else 0
-    #reward += 2 if rw.is_consuming_food_low_health(game) else 0
+    reward += 2 if rw.is_low_health(game) and self.is_food_consumed(game) else 0
     #reward += 2 if rw.is_taking_space(game) else 0
     #reward += -1 if rw.get_current_health(game) < 15 else 0
-    #reward += -2 if rw.is_consuming_food_high_health(game) else 0
+    reward += -2 if rw.is_high_health(game) and self.is_food_consumed(game) else 0
     #reward += -5 if rw.is_wall_collision(game) else 0
     #reward += -5 if rw.is_self_collision(game) else 0
-
+    print("reward: "+str(reward))
     return reward
 
   def get_current_health(self, game):
