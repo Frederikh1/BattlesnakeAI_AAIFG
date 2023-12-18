@@ -26,15 +26,6 @@ def is_taking_space(game):
     # Implement logic to check if the snake is taking space effectively
     pass
 
-def is_taking_space(game):
-    # Assuming you have a flood_fill function and a way to create a board representation
-    board = create_board_representation(game)
-    start = (game["you"]["body"][0]["x"], game["you"]["body"][0]["y"])
-    area_size = flood_fill(board, start)
-
-    # Define what you consider "effectively taking space"
-    return area_size > some_threshold_value
-
 def is_consuming_food_high_health(game):
     my_snake = game["you"]
     health = my_snake["health"]
