@@ -30,7 +30,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(15, 256, 3)
+    self.model = Linear_QNet(16, 256, 3)
     #comment if you don't want to load from the saved model
     self.model.load()
     print('loaded saved model')
@@ -60,6 +60,7 @@ class Agent:
     food_path_coordinate = self.direction_to_dictionary(food_path_coordinate)
     food_path_direction = self.get_direction(my_head, food_path_coordinate)
     food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
+    get_snake_health = game["you"]["health"]
     
     # Flood Fill -- Start --
     # Using Flood Fill to assess each potential move
@@ -91,7 +92,8 @@ class Agent:
         danger_straight,
         danger_right,
         
-        distance_to_food
+        distance_to_food,
+        get_snake_health
     ]
     
     #Add move direction
