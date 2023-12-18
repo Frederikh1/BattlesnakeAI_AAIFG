@@ -30,7 +30,7 @@ class Agent:
     self.epsilon = 0  # randomness
     self.gamma = 0.9  # discount rate
     self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-    self.model = Linear_QNet(16, 256, 3)
+    self.model = Linear_QNet(15, 256, 3)
     #comment if you don't want to load from the saved model
     self.model.load()
     print('loaded saved model')
@@ -42,25 +42,31 @@ class Agent:
     my_head = game["you"]["body"][0]  # Coordinates of your head
     my_neck = game["you"]["body"][1]  # Coordinates of your "neck"
     food = game["board"]["food"]
+    self.current_direction = self.get_direction(my_neck, my_head)
+    direction_input = self.convert_to_bool_directions(self.current_direction)
 
     snake_board = self.get_snake_positions(game)
     collision_left = self.get_next_collision(my_head, [-1, 0], snake_board)
     collision_up = self.get_next_collision(my_head, [0, 1], snake_board)
     collision_right = self.get_next_collision(my_head, [1, 0], snake_board)
     collision_down = self.get_next_collision(my_head, [0, -1], snake_board)
-
-    dir_l = False
-    dir_r = False
-    dir_u = False
-    dir_d = False
-    
-    self.current_direction = self.get_direction(my_neck, my_head)
-    direction_input = self.convert_to_bool_directions(self.current_direction)
+    collisions = [collision_down, collision_left, collision_up, collision_right]
+    danger_left = collisions[(self.current_direction.value -1) % len(Direction)]
+    danger_straight = collisions[(self.current_direction.value) % len(Direction)]
+    danger_right = collisions[(self.current_direction.value +1 ) % len(Direction)]
     
     distance_to_food, food_path_coordinate = self.get_closest_food(food, my_head, snake_board)
     food_path_coordinate = self.direction_to_dictionary(food_path_coordinate)
     food_path_direction = self.get_direction(my_head, food_path_coordinate)
     food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
+    
+    print(snake_board)
+    print(self.current_direction)
+    print(danger_left)
+    print(danger_right)
+    print(danger_straight)
+    print(my_head)
+    
 
     # Flood Fill -- Start --
     # Using Flood Fill to assess each potential move
@@ -88,10 +94,9 @@ class Agent:
         # Danger left
         move_scores["left"],
 
-        collision_left,
-        collision_up,
-        collision_right,
-        collision_down,
+        danger_left,
+        danger_straight,
+        danger_right,
         
         distance_to_food
     ]
@@ -246,7 +251,7 @@ class Agent:
     if (direction[1] != 0):
       head_y = head["y"]
       for x in range(start, max):
-        position = head_y + (x * direction[0])
+        position = head_y + (x * direction[1])
         if (position < min or position > max
             or board[head["x"]][position] != 0):
           break
