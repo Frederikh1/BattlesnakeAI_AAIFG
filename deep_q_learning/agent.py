@@ -3,10 +3,12 @@ import torch
 import random
 import numpy as np
 import deep_q_learning.a_star as astar
+from deep_q_learning.floodFill import flood_fill
 from collections import deque
 from deep_q_learning.model import Linear_QNet, QTrainer
 from deep_q_learning.state import State
 from enum import Enum
+
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -59,6 +61,30 @@ class Agent:
     food_path_coordinate = self.direction_to_dictionary(food_path_coordinate)
     food_path_direction = self.get_direction(my_head, food_path_coordinate)
     food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
+
+    # Flood Fill -- Start --
+    # Using Flood Fill to assess each potential move
+    current_position = (game["you"]["body"][0]["x"], game["you"]["body"][0]["y"])
+    board = self.get_snake_positions(game)
+
+    # Potential moves [left, straight, right]
+    potential_moves = self.get_potential_moves(current_position, self.current_direction)
+    move_scores = {}
+
+    for move_direction, new_position in potential_moves.items():
+      temp_board = np.copy(board)  # Copy board to simulate the move
+      accessible_area_size = flood_fill(temp_board, new_position)
+
+      #logging
+      with open("floodFillLogging.txt", "a") as file:
+        file.write(f"Position: {current_position}, Move: {move_direction}, Accessible Area: {accessible_area_size}\n")
+
+      move_scores[move_direction] = accessible_area_size
+
+    # Choose the best move based on Flood Fill results
+    best_move_direction = max(move_scores, key=move_scores.get)
+    final_move = self.convert_direction_to_move(best_move_direction)
+    # Flood Fill -- End --
 
     state = [
         #The three dangers are currently placeholders to avoid get to work first
@@ -145,9 +171,8 @@ class Agent:
     state_new = self.get_state(game)
     state_old, final_move = self.old_states.get_old_states(game)
     # train short memory
-    self.train_short_memory(state_old, final_move, reward, state_new,
-                            done)
-
+    self.train_short_memory(state_old, final_move, reward, state_new, done)
+    
     # remember
     self.remember(state_old, final_move, reward, state_new, done)
 
@@ -158,6 +183,46 @@ class Agent:
     final_move = self.get_action(state_old)
     self.old_states.save_old_states(game, state_old, final_move)
     return self.__direction_in_string(final_move)
+  
+  def get_potential_moves(self, current_position, current_direction):
+    # Mapping from current direction to new direction after a turn
+    turn_mapping = {
+        Direction.UP: [Direction.LEFT, Direction.UP, Direction.RIGHT],
+        Direction.RIGHT: [Direction.UP, Direction.RIGHT, Direction.DOWN],
+        Direction.DOWN: [Direction.RIGHT, Direction.DOWN, Direction.LEFT],
+        Direction.LEFT: [Direction.DOWN, Direction.LEFT, Direction.UP]
+    }
+
+    # Get possible new directions
+    possible_directions = turn_mapping[current_direction]
+
+    # Calculate new head positions for each possible direction
+    move_positions = {
+        'left': self.get_new_position(current_position, possible_directions[0]),
+        'straight': self.get_new_position(current_position, possible_directions[1]),
+        'right': self.get_new_position(current_position, possible_directions[2])
+    }
+    return move_positions
+
+  def get_new_position(self, position, direction):
+    # Calculate new position based on direction
+    if direction == Direction.UP:
+        return (position[0], position[1] + 1)
+    elif direction == Direction.RIGHT:
+        return (position[0] + 1, position[1])
+    elif direction == Direction.DOWN:
+        return (position[0], position[1] - 1)
+    elif direction == Direction.LEFT:
+        return (position[0] - 1, position[1])
+
+  def convert_direction_to_move(self, direction):
+    # Convert direction to final_move format
+    if direction == 'left':
+        return [1, 0, 0]
+    elif direction == 'straight':
+        return [0, 1, 0]
+    elif direction == 'right':
+        return [0, 0, 1]
 
   def done(self):
     self.n_games += 1
