@@ -25,7 +25,7 @@ class SnakeGameAI:
 
   def end(self, game):
     id = st.get_id_from_game(game)
-    if(not (id in self.current_games)):
+    if (not (id in self.current_games)):
       return
     game_over = True
     reward = self.get_reward(game)
@@ -36,7 +36,7 @@ class SnakeGameAI:
     del self.current_games[id]
 
   def play_step(self, game):
-    if(not rw.isSnakeAlive(game)):
+    if (not rw.isSnakeAlive(game)):
       self.end(game)
       return
     reward = self.get_reward(game)
@@ -45,17 +45,19 @@ class SnakeGameAI:
     action = self.agent.get_next_move(game, reward, game_over, score)
     self.save_game(game)
     return action
-  
+
   def get_reward(self, game):
     reward = 0
 
     #Conditions
     reward += rw.did_mySnake_win(game)
     reward += 0 if rw.preserve_health(game) else -1
-    reward += 2 if rw.is_low_health(game) and self.is_food_consumed(game) else 0
+
+    reward += 2 if rw.is_low_health(self.current_games[
+        game["game"]["id"]]) and self.is_food_consumed(game) else 0
     reward += -5 if rw.is_wall_collision(game) else 0
     reward += -5 if rw.is_self_collision(game) else 0
-    reward += -2 if rw.is_high_health(game) and self.is_food_consumed(game) else 0
+    reward += -2 if rw.is_high_health(self.current_games[game["game"]["id"]]) and self.is_food_consumed(game) else 0
     print("Reward: ", reward)
     return reward
 
@@ -69,14 +71,13 @@ class SnakeGameAI:
         has_eaten_food = True
         break
     return has_eaten_food
-  
+
   def get_last_food_positions(self, game):
     id = st.get_id_from_game(game)
     state = self.current_games[id]
     food_positions = state["board"]["food"]
     return food_positions
-  
+
   def save_game(self, game):
     id = st.get_id_from_game(game)
     self.current_games[id] = game
-
