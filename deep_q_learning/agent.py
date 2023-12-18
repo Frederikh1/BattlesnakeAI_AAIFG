@@ -60,23 +60,6 @@ class Agent:
     food_path_direction = self.get_direction(my_head, food_path_coordinate)
     food_path_direction_inputs = self.convert_to_bool_directions(food_path_direction)
 
-    # We probably need some kind of vector as basis figure out which locations in the field which are unreachable
-    if my_neck["x"] < my_head["x"]:  # Neck is left of head, don't move left
-      dir_l = True
-      self.current_direction = Direction.RIGHT
-
-    elif my_neck["x"] > my_head["x"]:  # Neck is right of head, don't move right
-      dir_r = True
-      self.current_direction = Direction.LEFT
-
-    elif my_neck["y"] < my_head["y"]:  # Neck is below head, don't move down
-      dir_u = True
-      self.current_direction = Direction.UP
-
-    elif my_neck["y"] > my_head["y"]:  # Neck is above head, don't move up
-      dir_d = True
-      self.current_direction = Direction.DOWN
-
     state = [
         #The three dangers are currently placeholders to avoid get to work first
         # Danger straight
