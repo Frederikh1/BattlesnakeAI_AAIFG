@@ -2,9 +2,10 @@ import random
 from collections import namedtuple
 from deep_q_learning.agent import Agent, Direction
 import deep_q_learning.state as st
+import deep_q_learning.rewards as rw
 import deep_q_learning.save_statistics as save
 import numpy as np
-import deep_q_learning.reward
+
 
 class SnakeGameAI:
   current_games = None
@@ -55,13 +56,13 @@ class SnakeGameAI:
     elif (self.get_current_health(game) < 20 & self.is_food_consumed(game) == True):
         reward += 2
 
-    #reward += 3 if reward.is_head_to_head_win(game) else 0
-    #reward += 2 if reward.is_consuming_food_low_health(game) else 0
-    #reward += 2 if reward.is_taking_space(game) else 0
-    #reward += -1 if reward.get_current_health(game) < 15 else 0
-    #reward += -2 if reward.is_consuming_food_high_health(game) else 0
-    #reward += -5 if reward.is_wall_collision(game) else 0
-    #reward += -5 if reward.is_self_collision(game) else 0
+    #reward += 3 if rw.is_head_to_head_win(game) else 0
+    #reward += 2 if rw.is_consuming_food_low_health(game) else 0
+    #reward += 2 if rw.is_taking_space(game) else 0
+    #reward += -1 if rw.get_current_health(game) < 15 else 0
+    #reward += -2 if rw.is_consuming_food_high_health(game) else 0
+    #reward += -5 if rw.is_wall_collision(game) else 0
+    #reward += -5 if rw.is_self_collision(game) else 0
 
     return reward
 
