@@ -203,18 +203,6 @@ class Agent:
     self.train_short_memory(state_old, final_move, reward, state_new, done)
 
     # Flood Fill -- Start --
-    # Board size and base threshold percentage
-    board_size = 11 * 11  # For an 11x11 board
-    base_threshold_percentage = 0.20  # 20% of the board area
-
-    # Snake length adjustment
-    snake_length = len(game["you"]["body"])
-    length_adjustment = 0.05 * (snake_length - 3)  # Decrease 5% per additional length
-
-    # Calculate dynamic threshold
-    adjusted_percentage = max(base_threshold_percentage - length_adjustment, 0.05)  # Ensuring a minimum of 5%
-    some_threshold = int(board_size * adjusted_percentage)
-
     # Using Flood Fill to assess each potential move
     current_position = (game["you"]["body"][0]["x"], game["you"]["body"][0]["y"])
     board = self.get_snake_positions(game)
