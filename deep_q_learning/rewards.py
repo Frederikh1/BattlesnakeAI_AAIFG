@@ -57,7 +57,7 @@ def is_self_collision(game):
     my_head = game["you"]["body"][0]
     my_body = game["you"]["body"][1:]  # Exclude the head
 
-    return my_head in my_body
+    return my_head in my_body and game["turn"] > 0
 
 def preserve_health(game):
     health = game["you"]["health"]

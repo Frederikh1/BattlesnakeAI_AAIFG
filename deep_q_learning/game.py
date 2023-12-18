@@ -56,6 +56,7 @@ class SnakeGameAI:
     reward += -5 if rw.is_wall_collision(game) else 0
     reward += -5 if rw.is_self_collision(game) else 0
     reward += -2 if rw.is_high_health(game) and self.is_food_consumed(game) else 0
+    print("Reward: ", reward)
     return reward
 
   def is_food_consumed(self, game):
