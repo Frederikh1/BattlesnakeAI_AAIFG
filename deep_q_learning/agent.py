@@ -206,10 +206,15 @@ class Agent:
     elif direction == 'right':
         return [0, 0, 1]
 
-  def done(self):
+  def done(self, game):
     self.n_games += 1
-    self.train_long_memory()
-    self.model.save()
+    turn = game["turn"]
+    health = game["you"]["health"]
+    #save/learn only if snake survived 10 turns or more
+    #and didnt' die of starvation
+    if turn > 9 and health > 0:
+      self.train_long_memory()
+      self.model.save()
 
   def __direction_in_string(self, direction_state):
     direction = 0

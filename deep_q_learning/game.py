@@ -29,7 +29,7 @@ class SnakeGameAI:
     reward = self.get_reward(game)
     score = game["you"]["length"]
     action = self.agent.get_next_move(game, reward, game_over, score)
-    self.agent.done()
+    self.agent.done(game)
     save.save_stats(game, self.did_mySnake_win(game))
     del self.current_games[id]
 
