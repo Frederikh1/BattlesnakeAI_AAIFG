@@ -64,47 +64,29 @@ class Agent:
 
     # Flood Fill -- Start --
     # Using Flood Fill to assess each potential move
-    current_position = (game["you"]["body"][0]["x"], game["you"]["body"][0]["y"])
-    board = self.get_snake_positions(game)
+    current_position = (my_head["x"], my_head["y"])
 
     # Potential moves [left, straight, right]
     potential_moves = self.get_potential_moves(current_position, self.current_direction)
     move_scores = {}
 
     for move_direction, new_position in potential_moves.items():
-      temp_board = np.copy(board)  # Copy board to simulate the move
+      temp_board = np.copy(snake_board)  # Copy board to simulate the move
       accessible_area_size = flood_fill(temp_board, new_position)
-
-      #logging
-      with open("floodFillLogging.txt", "a") as file:
-        file.write(f"Position: {current_position}, Move: {move_direction}, Accessible Area: {accessible_area_size}\n")
-
       move_scores[move_direction] = accessible_area_size
 
-    # Choose the best move based on Flood Fill results
-    best_move_direction = max(move_scores, key=move_scores.get)
-    final_move = self.convert_direction_to_move(best_move_direction)
     # Flood Fill -- End --
 
     state = [
         #The three dangers are currently placeholders to avoid get to work first
         # Danger straight
-        (dir_r and my_neck["x"] < my_head["x"])
-        or (dir_l and my_neck["x"] > my_head["x"])
-        or (dir_u and my_neck["y"] < my_head["y"])
-        or (dir_d and my_neck["y"] > my_head["y"]),
+        move_scores["straight"],
 
         # Danger right
-        (dir_r and my_neck["x"] < my_head["x"])
-        or (dir_l and my_neck["x"] > my_head["x"])
-        or (dir_u and my_neck["y"] < my_head["y"])
-        or (dir_d and my_neck["y"] > my_head["y"]),
+        move_scores["right"],
 
         # Danger left
-        (dir_r and my_neck["x"] < my_head["x"])
-        or (dir_l and my_neck["x"] > my_head["x"])
-        or (dir_u and my_neck["y"] < my_head["y"])
-        or (dir_d and my_neck["y"] > my_head["y"]),
+        move_scores["left"],
 
         collision_left,
         collision_up,
